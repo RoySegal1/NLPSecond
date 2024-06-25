@@ -6,7 +6,51 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from bs4 import BeautifulSoup
 import requests
 from collections import Counter
-# from gensim.models import Word2Vec
+from nltk import CFG
+from nltk.parse.chart import ChartParser
+from nltk.grammar import Nonterminal
+
+
+def cyk_parse(sentence, grammar):
+    words = sentence.split()
+    n = len(words)
+    table = [[set() for _ in range(n)] for _ in range(n)]
+
+    # Fill the table with lexical entries
+    for j in range(n):
+        for prod in grammar.productions(rhs=(words[j],)):
+            table[j][j].add(prod.lhs())
+
+    # Fill the table with productions
+    for length in range(2, n + 1):  # Length of the span
+        for i in range(n - length + 1):  # Start of the span
+            j = i + length - 1  # End of the span
+            for k in range(i, j):  # Split point of the span
+                for prod in grammar.productions():
+                    if len(prod.rhs()) == 2:
+                        B, C = prod.rhs()
+                        if B in table[i][k] and C in table[k + 1][j]:
+                            table[i][j].add(prod.lhs())
+
+    return table
+
+
+def print_cyk_table(table, words):
+    n = len(table)
+    print("CYK Parse Table:")
+    print(" " * 8 + " ".join(f"{word:7}" for word in words))
+    for i, row in enumerate(table):
+        row_str = f"{words[i]:<7}" if i < len(words) else " " * 7
+        for j, cell in enumerate(row):
+            if j >= i:
+                cell_str = "{" + ", ".join(str(nt) for nt in cell) + "}"
+                row_str += f"{cell_str:<8}"
+            else:
+                row_str += " " * 8
+        print(row_str)
+    print("\n" + "-" * 50 + "\n")
+
+
 # Function to print word statistics
 def print_word_statistics(words, title):
     word_counts = Counter(words)
@@ -87,41 +131,41 @@ print("TF-IDF Matrix:\n", tfidf_matrix.toarray())
 feature_names = tfidf_vectorizer.get_feature_names_out()
 
 
-# model = Word2Vec(
-#     sentences=filtered_tokens_einstein,      # The corpus to train the model on
-#     vector_size=500,       # The size of the word vectors to be learned
-#     window=5,              # The size of the window of words to be considered
-#     min_count=5,           # The minimum frequency required for a word to be included in the vocabulary
-#     sg=0,                  # 0 for CBOW, 1 for skip-gram
-#     negative=5,            # The number of negative samples to use for negative sampling
-#     ns_exponent=0.75,      # The exponent used to shape the negative sampling distribution
-#     alpha=0.03,            # The initial learning rate
-#     min_alpha=0.0007,      # The minimum learning rate to which the learning rate will be linearly reduced
-#     epochs=30,             # The number of epochs (iterations) over the corpus
-#     workers=4,             # The number of worker threads to use for training the model
-#     seed=42,               # The seed for the random number generator
-#     max_vocab_size=None    # The maximum vocabulary size (None means no limit)
-# )
-#
-# # Get the vector representation of a word
-# vector = model.wv['albert']
-#
-# # Find the most similar words to a given word
-# similar_words = model.wv.most_similar('man')
-#
-# # Print the vector and similar words
-# print("Vector for 'man':", vector)
-# print("Most similar words to 'man':", similar_words)
-# # Print feature names and corresponding TF-IDF scores
-# for doc_idx, doc in enumerate(tokenized_documents):
-#     print(f"Document {doc_idx + 1}:")
-#     for term_idx, term in enumerate(feature_names):
-#         tfidf_score = tfidf_matrix[doc_idx, term_idx]
-#         if tfidf_score > 0:
-#             print(f"{term}: {tfidf_score}")
-#     print("\n")
-#
-# # # Normalize TF-IDF matrix (optional)
-# # from sklearn.preprocessing import normalize
-# # tfidf_matrix_normalized = normalize(tfidf_matrix, norm='l2')
+# Define the grammar in CNF
+grammar = CFG.fromstring("""
+    S -> NP VP
+    VP -> V NP | V PP | V
+    NP -> Det N | N
+    PP -> P NP
+    V -> 'eats' | 'barks' | 'fly' | 'play' | 'rises'
+    Det -> 'the' | 'a'
+    N -> 'cat' | 'dog' | 'birds' | 'children' | 'park' | 'sun' | 'fish'
+    P -> 'in'
+    Adv -> 'loudly' | 'high'
+""")
 
+# Initialize sentences
+sentences = [
+    "the cat eats fish",
+    "a dog barks loudly",
+    "birds fly high",
+    "children play in the park",
+    "the sun rises"
+]
+
+# Create a parser
+parser = ChartParser(grammar)
+
+# Parse each sentence and print the parse trees
+for sentence in sentences:
+    print(f"Parsing sentence: '{sentence}'")
+    words = sentence.split()
+    cyk_table = cyk_parse(sentence, grammar)
+    print_cyk_table(cyk_table, words)
+    parses = list(parser.parse(words))
+    if parses:
+        for tree in parses:
+            tree.pretty_print()
+    else:
+        print("No valid parse found.")
+    print("\n" + "-"*50 + "\n")
