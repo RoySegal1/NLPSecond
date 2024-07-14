@@ -162,3 +162,7 @@ the     sun rises
 Vector for 'turing': [-0.01045214 -0.00530275  0.09526952  0.10000909 -0.07647605 -0.06589802
   0.1052027   0.11718311 -0.09110387 -0.06270126]
 Most similar words to 'work': [('program', 0.7417836785316467), ('bill', 0.7106789350509644), ('cyanide', 0.7105255126953125), ('turing', 0.6481770277023315), ('including', 0.6464800238609314), ('intelligence', 0.6459037661552429), ('continued', 0.6072257161140442), ('leech', 0.592371940612793), ('society', 0.5855095386505127), ('system', 0.5764103531837463)]
+
+
+
+like we talked in class, we can download Glove word's embedding and use them, but its very heavy (2GB+), thus we will not show it here.

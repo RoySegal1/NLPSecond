@@ -13,6 +13,7 @@ from nltk.grammar import Nonterminal
 from gensim.models import Word2Vec
 from nltk.tokenize import sent_tokenize
 
+
 def cyk_parse(sentence, grammar):
     words = sentence.split()
     n = len(words)
@@ -36,6 +37,7 @@ def cyk_parse(sentence, grammar):
 
     return table
 
+
 def print_cyk_table(table, words):
     n = len(words)
     print("CYK Parse Table:")
@@ -55,36 +57,43 @@ def print_cyk_table(table, words):
                 row_str += " " * 8
         print(row_str)
     print("\n" + "-" * 50 + "\n")
+
+
 # Function to print word statistics
 def print_word_statistics(words, title):
     word_counts = Counter(words)
     total_words = len(words)
     unique_words = len(word_counts)
-    most_common_words = word_counts.most_common(5)
+    most_common_words2 = word_counts.most_common(5)
 
     print(f"{title} Statistics:")
     print(f"Total words: {total_words}")
     print(f"Unique words: {unique_words}")
-    print(f"Most common words: {most_common_words}")
+    print(f"Most common words: {most_common_words2}")
     print("\n")
+
 
 # Function to tokenize text
 def tokenize(text):
     return word_tokenize(text)
+
 
 # Function to lemmatize tokens
 def lemmatize(tokens):
     lemmatizer = WordNetLemmatizer()
     return [lemmatizer.lemmatize(token) for token in tokens]
 
+
 # Function to remove stopwords and punctuation, and convert to lowercase
 def preprocess_text(tokens):
     stopwords = set(nltk.corpus.stopwords.words('english'))
     return [token.lower() for token in tokens if token.lower() not in stopwords and token.isalpha()]
 
+
 # URLs of Wikipedia pages
 url_turing = 'https://en.wikipedia.org/wiki/Alan_Turing'
 url_einstein = 'https://en.wikipedia.org/wiki/Albert_Einstein'
+
 
 # Function to scrape text from Wikipedia pages
 def scrape_wikipedia(url):
@@ -93,6 +102,7 @@ def scrape_wikipedia(url):
     paragraphs = soup.find_all('p')
     data = [paragraph.text for paragraph in paragraphs]
     return ' '.join(data)
+
 
 # Scrape text from Wikipedia pages
 data_turing = scrape_wikipedia(url_turing)
@@ -123,24 +133,18 @@ most_common_words = bow_einstein.most_common(5)
 print("Bag-of-Words (FreqDist) for Albert Einstein:\n", most_common_words)
 print("\n")
 
-# TF-IDF Vectorization
-# Combine the preprocessed tokens into a list of documents
-#tokenized_documents = [' '.join(filtered_tokens_turing), ' '.join(filtered_tokens_einstein)]
-
 # Initialize the TfidfVectorizer
 tfidf_vectorizer = TfidfVectorizer()
 
 # Fit and transform the documents into TF-IDF matrix
 tfidf_matrix = tfidf_vectorizer.fit_transform(sentences_turing)
 
-# Print TF-IDF matrix
 # Print TF-IDF values for specific words
 words_of_interest = ["turing", "machine"]
 feature_names = tfidf_vectorizer.get_feature_names_out()
 
 # print("TF-IDF Feature Names:", tfidf_vectorizer.get_feature_names_out())
 print("TF-IDF Feature Matrix:\n", tfidf_matrix)
-
 
 # Define the grammar in CNF
 grammar = CFG.fromstring("""
@@ -179,7 +183,7 @@ for sentence in sentences:
             tree.pretty_print()
     else:
         print("No valid parse found.")
-    print("\n" + "-"*50 + "\n")
+    print("\n" + "-" * 50 + "\n")
 
 # Train Word2Vec model
 model = Word2Vec(words_turing_tokenized, vector_size=10, window=5, workers=4)
@@ -191,8 +195,7 @@ if word in model.wv.key_to_index:
 else:
     print(f"'{word}' not found in the vocabulary")
 
-similar_words = model.wv.most_similar('work')  # Get most similar words to "machine"
+similar_words = model.wv.most_similar('work')  # Get most similar words to "work"
 
-# print("Vector for 'machine':", vector)
 print("Most similar words to 'work':", similar_words)
 # we can download Glove word's embedding and use them, but its very heavy (2GB+), thus we will not show it here.
